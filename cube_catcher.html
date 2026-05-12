@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Space Shooter</title>
+
+<style>
+
+body{
+    margin:0;
+    overflow:hidden;
+    background:black;
+}
+
+#player{
+    width:60px;
+    height:60px;
+    background:cyan;
+    position:absolute;
+    bottom:20px;
+    left:50%;
+}
+
+.enemy{
+    width:50px;
+    height:50px;
+    background:red;
+    position:absolute;
+    top:-50px;
+}
+
+.bullet{
+    width:6px;
+    height:20px;
+    background:yellow;
+    position:absolute;
+}
+
+#score{
+    position:fixed;
+    color:white;
+    font-size:30px;
+    top:10px;
+    left:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="score">Score: 0</div>
+
+<div id="player"></div>
+
+<script>
+
+const player = document.getElementById("player");
+const scoreText = document.getElementById("score");
+
+let playerX = window.innerWidth / 2;
+let score = 0;
+
+document.addEventListener("mousemove",(e)=>{
+    playerX = e.clientX;
+    player.style.left = playerX + "px";
+});
+
+function shoot(){
+
+    const bullet = document.createElement("div");
+
+    bullet.classList.add("bullet");
+
+    let x = playerX + 25;
+    let y = window.innerHeight - 100;
+
+    bullet.style.left = x + "px";
+    bullet.style.top = y + "px";
+
+    document.body.appendChild(bullet);
+
+    function move(){
+
+        y -= 10;
+
+        bullet.style.top = y + "px";
+
+        const enemies = document.querySelectorAll(".enemy");
+
+        enemies.forEach(enemy=>{
+
+            const b = bullet.getBoundingClientRect();
+            const e = enemy.getBoundingClientRect();
+
+            if(
+                b.left < e.right &&
+                b.right > e.left &&
+                b.top < e.bottom &&
+                b.bottom > e.top
+            ){
+                enemy.remove();
+                bullet.remove();
+
+                score++;
+
+                scoreText.innerHTML = "Score: " + score;
+            }
+        });
+
+        if(y > 0){
+            requestAnimationFrame(move);
+        }else{
+            bullet.remove();
+        }
+    }
+
+    move();
+}
+
+setInterval(shoot,300);
+
+function createEnemy(){
+
+    const enemy = document.createElement("div");
+
+    enemy.classList.add("enemy");
+
+    let x = Math.random() * (window.innerWidth - 50);
+
+    enemy.style.left = x + "px";
+
+    document.body.appendChild(enemy);
+
+    let y = -50;
+
+    function fall(){
+
+        y += 4;
+
+        enemy.style.top = y + "px";
+
+        if(y < window.innerHeight){
+            requestAnimationFrame(fall);
+        }else{
+            enemy.remove();
+        }
+    }
+
+    fall();
+}
+
+setInterval(createEnemy,700);
+
+</script>
+
+</body>
+</html>
