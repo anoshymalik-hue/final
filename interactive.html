@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Move Different Shapes</title>
+
+    <style>
+        body{
+            background:#1a1a2e;
+            text-align:center;
+            font-family:Verdana;
+            color:white;
+        }
+
+        h2{
+            color:#7cffcb;
+        }
+
+        canvas{
+            border:4px solid #7cffcb;
+            background:#0f3460;
+            border-radius:20px;
+            box-shadow:0 0 30px #7cffcb;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Click Any Shape → Move with Keyboard</h2>
+
+<canvas id="gameCanvas" width="750" height="500"></canvas>
+
+<script>
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// NEW SHAPES + NEW COLORS
+const objects = [
+    {type:"triangle", x:130, y:140, size:70, color:"#ff6b6b"},
+    {type:"star", x:600, y:130, size:45, color:"#ffd93d"},
+    {type:"pentagon", x:370, y:170, size:55, color:"#6bcB77"},
+    {type:"oval", x:320, y:330, rx:70, ry:45, color:"#4d96ff"}
+];
+
+let selected = null;
+const speed = 5;
+
+// KEYBOARD INPUT
+const keys = {};
+
+window.addEventListener("keydown", e => {
+    keys[e.key] = true;
+});
+
+window.addEventListener("keyup", e => {
+    keys[e.key] = false;
+});
+
+// CLICK TO SELECT
+canvas.addEventListener("click", (e) => {
+
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    selected = null;
+
+    for(let obj of objects){
+
+        // TRIANGLE
+        if(obj.type === "triangle"){
+            if(mx > obj.x - obj.size &&
+               mx < obj.x + obj.size &&
+               my > obj.y - obj.size &&
+               my < obj.y + obj.size){
+                selected = obj;
+            }
+        }
+
+        // STAR
+        if(obj.type === "star"){
+            if(mx > obj.x - obj.size &&
+               mx < obj.x + obj.size &&
+               my > obj.y - obj.size &&
+               my < obj.y + obj.size){
+                selected = obj;
+            }
+        }
+
+        // PENTAGON
+        if(obj.type === "pentagon"){
+            if(mx > obj.x - obj.size &&
+               mx < obj.x + obj.size &&
+               my > obj.y - obj.size &&
+               my < obj.y + obj.size){
+                selected = obj;
+            }
+        }
+
+        // OVAL
+        if(obj.type === "oval"){
+            const dx = mx - obj.x;
+            const dy = my - obj.y;
+
+            if((dx*dx)/(obj.rx*obj.rx) + (dy*dy)/(obj.ry*obj.ry) <= 1){
+                selected = obj;
+            }
+        }
+    }
+});
+
+// MOVE SELECTED SHAPE
+function update(){
+
+    if(!selected) return;
+
+    if(keys["ArrowUp"] || keys["w"]) selected.y -= speed;
+    if(keys["ArrowDown"] || keys["s"]) selected.y += speed;
+    if(keys["ArrowLeft"] || keys["a"]) selected.x -= speed;
+    if(keys["ArrowRight"] || keys["d"]) selected.x += speed;
+}
+
+// DRAW STAR
+function drawStar(x, y, spikes, outerRadius, innerRadius){
+
+    let rot = Math.PI / 2 * 3;
+    let step = Math.PI / spikes;
+
+    ctx.beginPath();
+
+    for(let i = 0; i < spikes; i++){
+
+        let sx = x + Math.cos(rot) * outerRadius;
+        let sy = y + Math.sin(rot) * outerRadius;
+
+        ctx.lineTo(sx, sy);
+        rot += step;
+
+        sx = x + Math.cos(rot) * innerRadius;
+        sy = y + Math.sin(rot) * innerRadius;
+
+        ctx.lineTo(sx, sy);
+        rot += step;
+    }
+
+    ctx.closePath();
+}
+
+// DRAW ALL OBJECTS
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    objects.forEach(obj => {
+
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = obj.color;
+
+        if(obj === selected){
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 4;
+        } else {
+            ctx.strokeStyle = "transparent";
+        }
+
+        // TRIANGLE
+        if(obj.type === "triangle"){
+
+            ctx.beginPath();
+
+            ctx.moveTo(obj.x, obj.y - obj.size);
+            ctx.lineTo(obj.x + obj.size, obj.y + obj.size);
+            ctx.lineTo(obj.x - obj.size, obj.y + obj.size);
+
+            ctx.closePath();
+
+            ctx.fillStyle = obj.color;
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // STAR
+        if(obj.type === "star"){
+
+            drawStar(obj.x, obj.y, 5, obj.size, obj.size/2);
+
+            ctx.fillStyle = obj.color;
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // PENTAGON
+        if(obj.type === "pentagon"){
+
+            const s = obj.size;
+
+            ctx.beginPath();
+
+            for(let i = 0; i < 5; i++){
+
+                const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+                const px = obj.x + Math.cos(angle) * s;
+                const py = obj.y + Math.sin(angle) * s;
+
+                if(i === 0){
+                    ctx.moveTo(px, py);
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+
+            ctx.closePath();
+
+            ctx.fillStyle = obj.color;
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // OVAL
+        if(obj.type === "oval"){
+
+            ctx.beginPath();
+
+            ctx.ellipse(
+                obj.x,
+                obj.y,
+                obj.rx,
+                obj.ry,
+                0,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fillStyle = obj.color;
+            ctx.fill();
+            ctx.stroke();
+        }
+    });
+}
+
+// GAME LOOP
+function loop(){
+
+    update();
+    draw();
+
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+</script>
+
+</body>
+</html>
